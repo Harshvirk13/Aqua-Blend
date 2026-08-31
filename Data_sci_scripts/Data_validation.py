@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 
-file_path = "Thomson_reservoir.csv"
+file_path = "your_water_quality_file.csv"
 
 df = pd.read_csv(file_path, encoding="cp1252")
 
@@ -143,9 +143,9 @@ for key, value in validation_summary.items():
 
 
 df.to_csv(
-    "Thomson_reservoir_validated.csv",
+    "Validated_water_quality.csv",
     index=False
 )
 
 print("\nValidated dataset saved as:")
-print("Thomson_reservoir_validated.csv")
+print("Validated_water_quality.csv")
