@@ -1,30 +1,27 @@
 # ============================================================
 # Aquablend — pinned dependencies
+# Rebuilt from actual imports found in the team's data cleaning,
+# validation, and Supabase upload scripts.
 # Install with:  pip install -r requirements.txt
 # ============================================================
-
-# --- Environment / secrets ---
-python-dotenv==1.0.1
-
-# --- Supabase / database ---
-supabase==2.7.4
-SQLAlchemy==2.0.35
-psycopg2-binary==2.9.9
 
 # --- Data handling ---
 pandas==2.2.3
 numpy==1.26.4
-geopandas==0.14.4
 
-# --- Optimisation (MILP) ---
-Pyomo==6.8.0
-highspy==1.7.2
+# --- Reading Excel source files (clean_water_quality.py) ---
+openpyxl==3.1.5
 
-# --- Dashboard / visualisation ---
-streamlit==1.38.0
-plotly==5.24.1
-pydeck==0.9.1
-folium==0.17.0
+# --- HTTP requests (WMIS scraper scripts, JSON upload script) ---
+requests==2.32.3
 
-# --- Testing / quality (optional but recommended for CI) ---
-pytest==8.3.3
+# --- Environment / secrets ---
+python-dotenv==1.0.1
+
+# --- Supabase client (upload scripts) ---
+supabase==2.7.4
+
+# NOTE: tkinter (used for file-picker dialogs in the validation scripts)
+# is part of Python's standard library, NOT a pip package. If it's
+# missing on Linux, install it via the OS package manager instead:
+#   sudo apt install python3-tk
