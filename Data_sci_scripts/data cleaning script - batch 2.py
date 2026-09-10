@@ -118,7 +118,9 @@ def infer_source_type(source_name):
 
 def fix_datetime(val):
     """Return YYYY/MM/DD, or None. Handles both date encodings seen in
-    this file: pure-digit Excel serial numbers, and 'M/D/YY' text."""
+    this file: pure-digit Excel serial numbers, and 'M/D/YY' text.
+    On any unexpected format, logs a warning and returns None rather
+    than raising, so one bad cell doesn't kill the whole run."""
     if val is None:
         return None
     s = str(val).strip()
@@ -126,13 +128,35 @@ def fix_datetime(val):
         return None
 
     if s.isdigit():
-        d = EXCEL_EPOCH + timedelta(days=int(s))
-        return d.strftime("%Y/%m/%d")
+        try:
+            d = EXCEL_EPOCH + timedelta(days=int(s))
+            return d.strftime("%Y/%m/%d")
+        except (OverflowError, ValueError) as e:
+            print(f"WARNING: invalid Excel serial date '{s}' ({e}) - treating as missing", file=sys.stderr)
+            return None
 
-    m, d, y = s.split("/")
-    y = int(y)
+    parts = s.split("/")
+    if len(parts) != 3:
+        print(f"WARNING: unexpected date format '{s}' (expected M/D/YY or a serial number) - treating as missing", file=sys.stderr)
+        return None
+
+    m, d, y = parts
+    try:
+        m, d, y = int(m), int(d), int(y)
+    except ValueError:
+        print(f"WARNING: non-numeric date parts in '{s}' - treating as missing", file=sys.stderr)
+        return None
+
     y += 2000 if y < 70 else 1900
-    return f"{y:04d}/{int(m):02d}/{int(d):02d}"
+
+    try:
+        # Validates the date is real (catches e.g. month=13, day=32)
+        datetime(y, m, d)
+    except ValueError:
+        print(f"WARNING: invalid calendar date '{s}' (parsed as {y:04d}/{m:02d}/{d:02d}) - treating as missing", file=sys.stderr)
+        return None
+
+    return f"{y:04d}/{m:02d}/{d:02d}"
 
 
 def clean(path: Path) -> pd.DataFrame:
@@ -150,6 +174,16 @@ def clean(path: Path) -> pd.DataFrame:
     df["measurement_datetime"] = df["datetime"].apply(fix_datetime)
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
 
+    # --- Check for duplicate station/date/parameter combos before pivoting ---
+    # pivot_table's aggfunc="first" below would otherwise silently keep
+    # only the first reading and drop any others for the same combo.
+    dup_mask = df.duplicated(subset=["station", "measurement_datetime", "target_col"], keep=False)
+    if dup_mask.any():
+        dup_rows = df[dup_mask].sort_values(["station", "measurement_datetime", "target_col"])
+        print(f"WARNING: {dup_mask.sum()} rows share the same station/date/parameter - "
+              f"only the first value will be kept, others dropped:", file=sys.stderr)
+        print(dup_rows[["station", "station_name", "measurement_datetime", "target_col", "value"]].to_string(), file=sys.stderr)
+
     pivot = df.pivot_table(
         index=["station", "station_name", "measurement_datetime"],
         columns="target_col",
@@ -158,6 +192,17 @@ def clean(path: Path) -> pd.DataFrame:
     ).reset_index()
 
     pivot = pivot.rename(columns={"station": "source_id", "station_name": "source_name"})
+
+    # --- Validate station IDs before converting to int ---
+    # A blank or non-numeric ID would otherwise make astype(int) raise
+    # and crash the whole script.
+    bad_id_mask = ~pivot["source_id"].astype(str).str.strip().str.isdigit()
+    if bad_id_mask.any():
+        bad_ids = pivot.loc[bad_id_mask, "source_id"].tolist()
+        print(f"WARNING: {bad_id_mask.sum()} rows have a blank or non-numeric station ID "
+              f"and will be dropped: {bad_ids}", file=sys.stderr)
+        pivot = pivot[~bad_id_mask].copy()
+
     pivot["source_id"] = pivot["source_id"].astype(int)
     pivot["source_type"] = pivot["source_name"].apply(infer_source_type)
 
