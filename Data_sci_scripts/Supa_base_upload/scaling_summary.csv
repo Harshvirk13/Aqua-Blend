@@ -1,0 +1,8 @@
+column,min,max,status
+capacity_ml,680.0,1068000.0,Scaled to 0-1
+cost_per_ml,400.0,700.0,Scaled to 0-1
+ph,0.0,10.3,Scaled to 0-1
+alkalinity,10.0,108.0,Scaled to 0-1
+turbidity,0.0,983.3,Scaled to 0-1
+colour,,,Skipped - no available values
+temperature,0.0,33.6,Scaled to 0-1
