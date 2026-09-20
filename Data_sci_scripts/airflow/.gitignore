@@ -1,0 +1,31 @@
+# Local environment / secrets
+.env
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Jupyter temporary files
+.ipynb_checkpoints/
+
+# Airflow runtime files
+logs/*
+!logs/.gitkeep
+config/*
+!config/.gitkeep
+
+# Pipeline-generated runtime data
+# Keep these files locally so batch checkpointing/resume works, but do not commit them.
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/executed_notebooks/*
+!data/executed_notebooks/.gitkeep
+data/runtime/*
+!data/runtime/.gitkeep
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/

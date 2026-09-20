@@ -1,0 +1,5 @@
+apache-airflow-providers-papermill==3.13.2
+pandas
+requests
+supabase
+python-dotenv
