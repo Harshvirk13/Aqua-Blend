@@ -1,0 +1,8 @@
+column,missing_before,filled_by_source_median,filled_by_overall_median,missing_after,treatment
+capacity_ml,31433,0,31433,0,Source_id median used first; overall median used as fallback
+cost_per_ml,31433,0,31433,0,Source_id median used first; overall median used as fallback
+ph,0,0,0,0,No missing values
+alkalinity,29240,0,29240,0,Source_id median used first; overall median used as fallback
+turbidity,0,0,0,0,No missing values
+colour,32339,0,0,32339,No available values; NULL retained
+temperature,3830,0,3830,0,Source_id median used first; overall median used as fallback
